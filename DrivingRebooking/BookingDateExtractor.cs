@@ -20,7 +20,16 @@ namespace DrivingRebooking
         public DateTime GetClosestAvailableDate()
         {
             Console.WriteLine("jopening browser");
+            string earliestDateString = RetryPolicy.Linear(() => GetEarliestDate(), TimeSpan.FromSeconds(2), 5);
 
+            Trace.TraceWarning("Closest date " + earliestDateString);
+            Console.WriteLine("Closest date " + earliestDateString);
+
+            return DateParser.FromUkDate(earliestDateString);
+        }
+
+        private string GetEarliestDate()
+        {
             Browser.Current.Navigate().GoToUrl(ConfigurationManager.AppSettings["InitialLink"]);
             Trace.TraceWarning("Browser.Currentpracticaltest is loaded");
 
@@ -41,10 +50,7 @@ namespace DrivingRebooking
             Trace.TraceWarning("looking for reading slots");
 
             var earliestDateString = Browser.Current.FindElementById("availability-results").FindElement(By.CssSelector("span.slotDateTime")).Text;
-            Trace.TraceWarning("Closest date " + earliestDateString);
-            Console.WriteLine("Closest date " + earliestDateString);
-
-            return DateParser.FromUkDate(earliestDateString);
+            return earliestDateString;
         }
     }
 }
