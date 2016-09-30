@@ -33,6 +33,7 @@ namespace DrivingRebooking
         {
             // "Tuesday 13 December 2016 8:57am\r\n[was Tuesday 6 December 2016 8:20am]"
 
+
             var updateText = Browser.Current.FindElementByCssSelector(".contents .update dd").Text;
 
             var regex = new Regex(@"(.*)\r\n\[was\s(.*)\]", RegexOptions.Singleline);

@@ -21,6 +21,12 @@ namespace DrivingRebooking
     {
         static void Main(string[] args)
         {
+            if (ConfigurationManager.AppSettings["UseJobHost"] == "false")
+            {
+                RebookingEngine.Execute();
+                return;
+            }
+
             JobHost host = new JobHost();
             host.Call(typeof(RebookingEngine).GetMethod("Execute"));
         }
