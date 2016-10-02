@@ -39,7 +39,9 @@ namespace DrivingRebooking
                 Console.WriteLine("Error" + ex.Message);
                 Trace.TraceError(ex.Message + " " + ex.StackTrace);
 
-                Notifier.SendNotification("Booking exception", ex.Message)
+                var body = Browser.Current.FindElementByTagName("body").Text;
+
+                Notifier.SendNotification("Booking exception", ex.Message + "body - " + body)
                     .ContinueWith(t => EmailStatus(t)).Wait();
                 throw;
             }
