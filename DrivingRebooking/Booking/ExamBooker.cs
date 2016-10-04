@@ -21,7 +21,7 @@ namespace DrivingRebooking
 
             if (ShouldContinueWithBooking(appointment))
             {
-                //Browser.Current.FindElementById("confirm-changes").Click();
+                Browser.Current.FindElementById("confirm-changes").Click();
                 Console.WriteLine("Sending email with a close date " + DateParser.ToUkString(appointment));
                 Notifier.SendNotification(
                         "SLOT IS BOOKED!!!",
