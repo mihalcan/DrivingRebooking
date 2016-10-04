@@ -21,9 +21,10 @@ namespace DrivingRebooking
 
             if (ShouldContinueWithBooking(appointment))
             {
+                Browser.Current.FindElementById("confirm-changes").Click();
                 Console.WriteLine("Sending email with a close date " + DateParser.ToUkString(appointment));
                 Notifier.SendNotification(
-                        "SLOT IS AVAILABLE!!!",
+                        "SLOT IS BOOKED!!!",
                         CreateEmailContent(appointment))
                     .ContinueWith(t => EmailStatus(t)).Wait();
             }                        
@@ -33,9 +34,49 @@ namespace DrivingRebooking
         {
             // "Tuesday 13 December 2016 8:57am\r\n[was Tuesday 6 December 2016 8:20am]"
 
+            var sections = Browser.Current.FindElementsByCssSelector("#confirm-booking-details .contents dl.update");
 
-            var updateText = Browser.Current.FindElementByCssSelector(".contents .update dd").Text;
+            var dateSection = sections[0];
+            var testCentreSection = sections[1];
 
+
+            var updateText = dateSection.FindElement(By.CssSelector("dd")).Text;
+            var isEarlier = IsExamDateEarlierThenTheCurrentOne(updateText);
+
+            var testCentreText = testCentreSection.FindElement(By.CssSelector("dd")).Text;
+            bool wasExamChangedToReading = IsExamChangedToReading(testCentreText);
+
+            // when rebboking from Newbury to reading
+            if (!isEarlier && wasExamChangedToReading)
+            {
+                return true;
+            }
+
+            return isEarlier;
+        }
+
+        private static bool IsExamChangedToReading(string testCentreText)
+        {
+            var regex = new Regex(@"(.*)\r\n\[was\s(.*)\]", RegexOptions.Singleline);
+            var match = regex.Match(testCentreText);
+
+            if (match.Success && match.Groups.Count == 3)
+            {
+                var newCentre = match.Groups[1].Value;
+                var prevCentre = match.Groups[2].Value;
+                if (!prevCentre.ToLower().Contains("reading"))
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
+            throw new Exception(string.Format("Cannot is invalid for test centres {0}", testCentreText));
+        }
+
+        private static bool IsExamDateEarlierThenTheCurrentOne(string updateText)
+        {
             var regex = new Regex(@"(.*)\r\n\[was\s(.*)\]", RegexOptions.Singleline);
             var match = regex.Match(updateText);
 
@@ -70,7 +111,7 @@ namespace DrivingRebooking
 
         private static string CreateEmailContent(DateTime appointment)
         {
-            var content = "New slot is available " + DateParser.ToUkString(appointment) + Environment.NewLine;
+            var content = "New slot is booked " + DateParser.ToUkString(appointment) + Environment.NewLine;
             content += ConfigurationManager.AppSettings["InitialLink"] + Environment.NewLine;
             content += ConfigurationManager.AppSettings["LicenceNo"] + Environment.NewLine;
             content += ConfigurationManager.AppSettings["ReferenceNo"] + Environment.NewLine;
